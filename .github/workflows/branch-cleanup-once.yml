@@ -1,4 +1,5 @@
 # One-time operational cleanup. Remove this workflow immediately after it succeeds.
+# Triggered through a merged PR so the default-branch push event is authoritative.
 name: One-time branch cleanup
 
 on:
