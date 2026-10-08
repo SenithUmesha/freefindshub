@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  A search-first discovery platform for genuinely useful free digital resources, offers, tools, templates, courses, gaming finds, and downloads.
+  A utility-first geek publisher for current gaming codes and rewards, real free offers, useful software and AI free tiers, perks, tools, and templates.
 </p>
 
 <p align="center">
@@ -27,6 +27,22 @@
 <p align="center">
   <a href="https://github.com/SenithUmesha/freefindshub/actions/workflows/docs-check.yml"><img src="https://github.com/SenithUmesha/freefindshub/actions/workflows/docs-check.yml/badge.svg" alt="Docs integrity" /></a>
 </p>
+
+---
+
+## current stable baseline
+
+FreeFindsHub is live from a private production repository whose stable production branch is `main`. This public repository mirrors the released product and engineering shape without exposing private content, credentials, operational configuration, or privileged workflow implementation.
+
+The current stable baseline includes:
+
+- the consolidated five-hub public taxonomy: Gaming, Freebies, Software, Perks, and Tools
+- static search, filters, freshness surfaces, saved finds, recently viewed, and related-resource discovery
+- typed publishing gates and deterministic build-time validation
+- narrowly scoped autonomous publishing with trusted merge controls
+- provenance-aware local media plus controlled rights-safe automation
+- canonical/sitemap/robots/structured-data foundations, private Search Console reporting, Cloudflare Web Analytics, and trusted IndexNow notification
+- centrally gated advertising readiness that remains off until the required external approval/configuration exists
 
 ---
 
@@ -54,21 +70,15 @@ The interesting engineering problem is not just rendering pages. It is building 
 
 ## what FreeFindsHub covers
 
-The platform supports multiple resource families rather than one giant generic feed:
+The public information architecture is intentionally compact:
 
-- deals and free digital offers
-- career resources
-- templates
-- AI resources
-- gaming freebies and codes
-- fonts and wallpapers
-- student resources
-- mobile resources
-- promotions
-- courses
-- downloads and owned utilities
+- **Gaming** — codes, rewards, free claims, and unlock utilities
+- **Freebies** — real free offers and high-value promotions
+- **Software** — software, AI, and mobile utilities or useful free tiers
+- **Perks** — student and creator benefits
+- **Tools** — FreeFindsHub-owned tools, templates, and practical assets
 
-The priority is usefulness and search intent, not hitting a page-count target.
+Older public detail URLs remain stable where a page survived the consolidation audit, while retired/merged hub routes are redirected or removed according to their reviewed disposition. The priority is usefulness and search intent, not hitting a page-count target.
 
 Every publishable record carries structured information about its source, destination, freshness, indexability, rights/provenance where relevant, and the content depth needed to justify a standalone page.
 
@@ -130,7 +140,7 @@ This was much more interesting to build than a script that simply generates Mark
 
 Resource imagery is treated as publishable data, not decoration copied from somewhere and forgotten.
 
-The production pipeline tracks provenance for reviewed media and validates expected paths and image constraints before publication. Automated media ingestion is intentionally bounded to approved providers and produces optimized local assets only after validation.
+The production pipeline tracks provenance for reviewed media and validates expected paths and image constraints before publication. Automated media ingestion is intentionally bounded to approved providers and produces optimized local assets only after validation. Where an exact third-party asset is not safely reusable, the system can use FreeFindsHub-owned editorial media rather than scraping unclear copyrighted artwork.
 
 The goal is that a page can answer two separate questions:
 
