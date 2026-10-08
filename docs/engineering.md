@@ -4,9 +4,17 @@ This document describes the production architecture at a public-showcase level. 
 
 ## 1. Product shape
 
-FreeFindsHub is a static-first discovery and publishing system for useful free digital resources.
+FreeFindsHub is a static-first utility publisher for useful free digital resources and high-intent geek content.
 
-The supported content model spans multiple verticals, including deals, career resources, templates, AI resources, gaming, student resources, fonts, wallpapers, mobile, promotions, courses, and downloads.
+The public information architecture is intentionally consolidated into five hubs:
+
+- **Gaming** — codes, rewards, free claims, and unlock utilities
+- **Freebies** — real free offers and high-value promotions
+- **Software** — software, AI, and mobile utilities or useful free tiers
+- **Perks** — student and creator benefits
+- **Tools** — FreeFindsHub-owned tools, templates, and practical assets
+
+Legacy detail routes can remain stable when a page survives the content audit, but a historical category is not automatically allowed to keep producing new public pages.
 
 The production system separates three concerns:
 
@@ -77,7 +85,7 @@ The important architectural rule is:
 
 > becoming representable in the schema is not the same as becoming publishable.
 
-A supported vertical can exist in the platform without automatically gaining indexable production pages.
+A supported record type can exist in the platform without automatically gaining an indexable production page.
 
 ---
 
@@ -136,7 +144,7 @@ The production system includes:
 - Open Graph metadata
 - visible breadcrumbs
 - JSON-LD breadcrumbs
-- record-derived Article / CreativeWork structured data where appropriate
+- record-derived structured data where appropriate
 - RSS resource feed
 - noindex handling for raw download assets and query-result states
 - deterministic SEO diagnostics
@@ -149,7 +157,7 @@ The system deliberately avoids unsupported ranking claims or schema that does no
 
 ## 7. Search Console and growth feedback
 
-Search performance is observed through a private, read-only reporting path.
+Search performance is observed through a private, read-only reporting path. Aggregate site behavior and real-user performance are measured separately so search visibility and on-site behavior do not get conflated.
 
 The growth loop is conceptually:
 
@@ -227,7 +235,7 @@ The production policy validates things such as:
 - final optimized format
 - deterministic metadata association
 
-The result is a local production asset with recorded provenance rather than a fragile hotlink.
+The result is a local production asset with recorded provenance rather than a fragile hotlink. Where exact third-party game/product/provider artwork is not safely reusable, FreeFindsHub can use its own editorial graphics instead of scraping unclear copyrighted imagery.
 
 ---
 
