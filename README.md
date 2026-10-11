@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <code>Astro</code> · <code>TypeScript</code> · <code>Cloudflare Workers</code> · <code>SEO</code> · <code>GitHub Actions</code> · <code>static-first</code>
+  <code>Astro</code> · <code>TypeScript</code> · <code>Cloudflare Workers</code> · <code>Cloudflare Access</code> · <code>GitHub Actions</code> · <code>SEO</code> · <code>static-first</code>
 </p>
 
 <p align="center">
@@ -30,19 +30,22 @@
 
 ---
 
-## current stable baseline
+## current production shape
 
 FreeFindsHub is live from a private production repository whose stable production branch is `main`. This public repository mirrors the released product and engineering shape without exposing private content, credentials, operational configuration, or privileged workflow implementation.
 
-The current stable baseline includes:
+The current production baseline includes:
 
 - the consolidated five-hub public taxonomy: Gaming, Freebies, Software, Perks, and Tools
+- reader-first gaming code guides that keep current, reported, and expired code history useful instead of hiding old entries
 - static search, filters, freshness surfaces, saved finds, recently viewed, and related-resource discovery
 - typed publishing gates and deterministic build-time validation
-- narrowly scoped autonomous publishing with trusted merge controls
-- provenance-aware local media plus controlled rights-safe automation
-- canonical/sitemap/robots/structured-data foundations, private Search Console reporting, Cloudflare Web Analytics, and trusted IndexNow notification
-- centrally gated advertising readiness that remains off until the required external approval/configuration exists
+- a GitHub-native Daily Publisher with a tightly bounded content-only write surface
+- a separate owner control room protected by Cloudflare Access, with Git remaining canonical for publications and final media
+- an owner editorial-media workflow that can add responsive original artwork after an article is already publishable
+- privacy-bounded analytics and Search Console reporting inside the owner control room
+- canonical/sitemap/robots/structured-data foundations, Cloudflare Web Analytics, and trusted IndexNow notification
+- advertising readiness that remains separately gated by owner and provider prerequisites
 
 ---
 
@@ -57,14 +60,14 @@ search for something useful
         ↓
 land on a page that explains exactly what it is
         ↓
-see source + freshness + eligibility context
+get the useful answer, code, claim path, or tool
         ↓
-get the real action/download link
+understand freshness / eligibility where it matters
         ↓
 discover related useful resources
 ```
 
-The interesting engineering problem is not just rendering pages. It is building a publishing system where search visibility, content quality, provenance, media rights, freshness, automation, and monetization all have to agree before something is allowed to become a real public page.
+The interesting engineering problem is not just rendering pages. It is building a publishing system where search visibility, content quality, freshness, media, automation, measurement, and monetization all have to agree before the site grows safely.
 
 ---
 
@@ -78,9 +81,19 @@ The public information architecture is intentionally compact:
 - **Perks** — student and creator benefits
 - **Tools** — FreeFindsHub-owned tools, templates, and practical assets
 
-Older public detail URLs remain stable where a page survived the consolidation audit, while retired/merged hub routes are redirected or removed according to their reviewed disposition. The priority is usefulness and search intent, not hitting a page-count target.
+Older public detail URLs remain stable where a page survived the consolidation audit, while retired or merged hub routes are redirected or removed according to their reviewed disposition. The priority is usefulness and search intent, not hitting a page-count target.
 
-Every publishable record carries structured information about its source, destination, freshness, indexability, rights/provenance where relevant, and the content depth needed to justify a standalone page.
+Every publishable record carries structured information about its identity, source, destination, freshness, indexability, article content, and media state where relevant.
+
+---
+
+## reader-first article surfaces
+
+The public site is deliberately less technical than the system behind it.
+
+Gaming code pages, for example, keep useful history visible instead of turning the page into an internal verification dashboard. Current, reported, and expired codes can remain readable with practical redemption steps, troubleshooting, game context, and update information around them.
+
+The same editorial rule applies elsewhere: internal evidence and automation metadata stay behind the scenes, while the public page leads with the thing a reader actually came to get.
 
 ---
 
@@ -111,41 +124,58 @@ Production resources use a typed local content model with publish gates for thin
 
 - canonical identity and route uniqueness
 - source and action URLs
-- timestamps and expiry state
+- publication, verification, and expiry state
 - relationships between resources
-- image/media paths
-- provenance and licensing/rights metadata
+- article structure and useful content depth
+- canonical image alt text
+- optional media paths
 - indexability
-- minimum useful content depth
 
-The build discovers reviewed production records deterministically and validates the whole collection before it can ship.
+Collection-level validation also protects invariants that an individual record cannot check alone.
 
-That means an invalid resource is a build problem, not something I hope to notice after Google crawls it.
-
----
-
-## safe automation instead of generic auto-merge
-
-FreeFindsHub has an autonomous publishing path, but it is deliberately narrow.
-
-The automation can work inside a content-only boundary; it does **not** get a general-purpose path to change application code, workflows, deployment configuration, or repository policy.
-
-The trusted merge side verifies the exact reviewed commit and successful CI result before a content update can move forward. Automation-produced media goes through its own validation/materialization boundary rather than trusting arbitrary remote files.
-
-This was much more interesting to build than a script that simply generates Markdown and pushes it to `main`.
+That means an invalid resource is a build or publishing-policy problem, not something I hope to notice after Google crawls it.
 
 ---
 
-## media that can be explained later
+## a bounded Daily Publisher
 
-Resource imagery is treated as publishable data, not decoration copied from somewhere and forgotten.
+FreeFindsHub has recurring autonomous publishing, but it is deliberately narrow.
 
-The production pipeline tracks provenance for reviewed media and validates expected paths and image constraints before publication. Automated media ingestion is intentionally bounded to approved providers and produces optimized local assets only after validation. Where an exact third-party asset is not safely reusable, the system can use FreeFindsHub-owned editorial media rather than scraping unclear copyrighted artwork.
+The scheduled publisher researches and drafts only new structured article records. It cannot change routes, schemas, dependencies, scripts, workflows, deployment configuration, or arbitrary repository files. A deterministic staging layer accepts only the expected record shape and writes only the production content path.
 
-The goal is that a page can answer two separate questions:
+The production schedule runs through GitHub-native automation. New-content pull requests are kept as a review and audit trail, checked against the exact intended revision and content-only policy, and then production deployment proceeds from `main`.
 
-1. **Does this image actually match the resource?**
-2. **Can I explain where it came from and why it is allowed to be here?**
+The useful security property is simple: the research/writing agent does not receive general repository authority just because it can propose an article.
+
+---
+
+## the owner control room
+
+The project now has a separate owner-only control room rather than treating GitHub itself as the day-to-day editorial UI.
+
+It runs as an isolated Cloudflare Worker behind Cloudflare Access and presents operational views for areas such as:
+
+- publication status and review state
+- aggregate site statistics
+- privacy-bounded analytics and Search Console data
+- media attention queues
+- owner actions and operational health
+
+Git remains the source of truth for canonical publication data and final media. D1 is used for bounded operational state, reconciliation, and action history rather than as a second CMS database.
+
+The control room is intentionally not a general browser-to-production editor. Mutating actions are constrained, identity-bound, and represented through narrow repository operations instead of a hidden direct-to-`main` write path.
+
+---
+
+## original editorial media, added separately
+
+Article quality and image state are separate concerns.
+
+A strong article can publish without a hero image. The owner control room can later show the article context and a deterministic article-specific image prompt, then accept an owner-created source image, crop it to the editorial ratio, and create responsive WebP variants for the site.
+
+That keeps the content publisher focused on research and writing while keeping visual direction in an explicit owner workflow. It also avoids turning autonomous publishing into an image-scraping or licensing-research agent.
+
+The current media workflow is intentionally simple: **Needs image** or **Image added**. Final media still lands in Git with the publication record rather than living as an unexplained hotlink.
 
 ---
 
@@ -169,14 +199,14 @@ Current pieces include:
 - trusted post-publish IndexNow submission
 - image/search discovery considerations
 
-The growth side is intentionally measurement-driven: Search Console and aggregate traffic signals can feed private reporting and opportunity scoring, but those signals do not bypass editorial, provenance, or publishing gates.
+The growth side is intentionally measurement-driven: Search Console and aggregate traffic signals can feed private reporting and opportunity review, but those signals do not bypass editorial or publishing gates.
 
 ---
 
 ## architecture
 
 ```text
-reviewed resource data
+reviewed / publisher-produced resource data
         ↓
 typed content schema + publish gates
         ↓
@@ -193,21 +223,37 @@ Cloudflare Workers Static Assets
 freefindshub.com
 ```
 
-Around that path are two separate systems:
+The owner side is deliberately separate:
 
 ```text
-publishing automation                 growth feedback
-        ↓                                  ↓
-content-only proposal                 Search Console
-        ↓                                  +
-validation / CI                       aggregate site signals
-        ↓                                  ↓
-trusted merge boundary                private diagnostics
-        ↓                                  ↓
-production build                      human editorial decisions
+Cloudflare Access
+        ↓
+owner control-room Worker
+        ├── publications
+        ├── statistics / analytics
+        ├── media queue
+        └── bounded operations / audits
+        ↓
+GitHub + bounded D1 operational state
 ```
 
-Keeping those responsibilities separate matters. Search performance can suggest where to look next, but it cannot grant itself permission to publish something.
+And publishing stays narrow:
+
+```text
+scheduled research + writing
+        ↓
+bounded structured payload
+        ↓
+deterministic content-only staging
+        ↓
+exact-revision policy checks + PR audit trail
+        ↓
+main
+        ↓
+normal production build / deploy
+```
+
+Keeping those responsibilities separate matters. Search performance can suggest where to look next, Admin can make bounded owner changes, and the publisher can draft new articles, but none of those surfaces silently gains unlimited production authority.
 
 ---
 
@@ -218,15 +264,17 @@ Keeping those responsibilities separate matters. Search performance can suggest 
 | Framework | Astro |
 | Language | TypeScript |
 | Rendering | Static-first |
-| Hosting | Cloudflare Workers + Static Assets |
-| Content | Typed local structured records |
+| Public hosting | Cloudflare Workers + Static Assets |
+| Owner control room | Separate Cloudflare Worker behind Cloudflare Access |
+| Canonical content | Typed local structured records in Git |
+| Operational state | Bounded D1 state for Admin, not canonical content |
 | Search | Build-generated static search index |
 | SEO | Canonicals, sitemap, JSON-LD, RSS, diagnostics |
 | Discovery | Search, filters, related content, saved/recent state |
-| Media | Reviewed local assets + provenance-aware validation |
-| Automation | GitHub Actions with narrow content-only boundaries |
-| Growth | Search Console + private consolidated reporting |
-| Monetization | Gated, fail-closed advertising readiness |
+| Media | Owner-created responsive WebP assets attached through a narrow Admin workflow |
+| Automation | GitHub-native, content-only scheduled publishing |
+| Measurement | Search Console + Cloudflare Web Analytics + private owner reporting |
+| Monetization | Separately gated advertising readiness |
 
 The production source repository is private. This public repository is intentionally documentation-first: it shows the product, architecture, and engineering decisions without publishing operational configuration, private reporting, privileged workflows, or the production content pipeline itself.
 
@@ -236,7 +284,7 @@ The production source repository is private. This public repository is intention
 
 FreeFindsHub is designed to support advertising, but monetization is treated as another gated subsystem rather than permission to cover every page in units.
 
-The production architecture has explicit content-depth budgets, control/CTA exclusion zones, indexability checks, and owner-controlled activation. Advertising readiness fails closed until the required external account, policy, consent, and production checks are actually satisfied.
+The product still has to deliver a useful answer, code, claim path, comparison, or tool. Advertising activation is kept separate from content eligibility and depends on external account, policy, consent, and owner readiness.
 
 The page still has to be useful if you mentally remove every ad slot from it.
 
@@ -247,14 +295,20 @@ The page still has to be useful if you mentally remove every ad slot from it.
 **a resource must earn its indexable page**  
 The schema can represent many verticals, but route support is not permission to publish thin or invented content.
 
-**source and freshness are product UI**  
-People should be able to understand where a claim came from and whether the resource is still current.
+**public copy should sound like a useful article, not an audit log**  
+Evidence, automation state, and verification machinery can stay strict internally without leaking that language into the reader experience.
 
 **automation gets a tiny box to work inside**  
-Automated publishing is useful precisely because it is constrained. Content automation should not silently become repository administration.
+Automated publishing is useful precisely because it is constrained. A writing agent should not silently become repository administration.
+
+**admin is an owner tool, not a second source of truth**  
+The control room can make bounded changes and show operational state, while canonical publication data stays in Git.
+
+**images are optional for publishing**  
+A strong article should not be blocked because original editorial artwork has not been added yet.
 
 **search data suggests; it does not publish**  
-Growth reports help prioritize research. They do not bypass human review or source/rights checks.
+Growth reports help prioritize research. They do not bypass human judgment or content policy.
 
 **static-first is a feature**  
 Most resource pages do not need a database request just to tell a visitor what is available. Static output keeps the common path fast, cacheable, and crawl-friendly.
@@ -268,7 +322,7 @@ Ads are downstream of useful content and policy readiness, not the other way aro
 
 This is the **public product + engineering showcase** for FreeFindsHub.
 
-The production application, publishing automation, private growth reports, content registry, deployment configuration, and privileged workflow details remain in a private repository.
+The production application, owner control-room implementation, publishing automation, private growth reports, content registry, deployment configuration, and privileged workflow details remain in a private repository.
 
 This repo exists so I can share the architecture and the parts of the project I find interesting without turning a production publishing business into an open operational blueprint.
 
