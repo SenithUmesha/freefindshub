@@ -14,16 +14,16 @@ The public information architecture is intentionally consolidated into five hubs
 - **Perks** — student and creator benefits
 - **Tools** — FreeFindsHub-owned tools, templates, and practical assets
 
-Legacy detail routes can remain stable when a page survives the content audit, but a historical category is not automatically allowed to keep producing new public pages.
+The stable production baseline was finalized in October 2026. The project is intentionally in a quiet operating phase while AdSense approval remains external and pending.
 
-The production system now separates four concerns:
+The production system separates four concerns:
 
 1. **Publishing correctness** — can this resource safely become a real page?
 2. **Site delivery** — can the visitor get a fast, useful, crawlable page?
 3. **Owner operations** — can the owner inspect and make bounded changes without creating a second source of truth?
 4. **Growth feedback** — what should be researched or improved next?
 
-Those systems exchange data, but none is allowed to silently take control of the others.
+Those systems exchange data, but none silently takes control of the others.
 
 ---
 
@@ -38,31 +38,20 @@ schema + collection validation
         ↓
 Astro build
         ↓
-static hubs + detail pages + search data + feeds
+static hubs + detail pages + search data + feeds + responsive media
         ↓
 Cloudflare Workers Static Assets
         ↓
 edge-cached public site
 ```
 
-This fits the product well because most resource pages are read-heavy and change through publishing events rather than per-request transactions.
+This fits the product because most resource pages are read-heavy and change through publishing events rather than per-request transactions.
 
-Benefits include:
-
-- predictable crawlable HTML
-- fast edge delivery
-- fewer runtime failure modes
-- simple cache behavior
-- deterministic production output
-- easy local and CI verification of the exact site that will ship
-
-Dynamic infrastructure is intentionally added only when a use case actually needs it.
+Benefits include predictable crawlable HTML, fast edge delivery, fewer runtime failure modes, simple cache behavior, and deterministic production output.
 
 ---
 
 ## 3. Typed publishing model
-
-The production content registry is not treated as arbitrary frontmatter.
 
 Publishable records are validated against typed contracts covering things such as:
 
@@ -80,13 +69,11 @@ Publishable records are validated against typed contracts covering things such a
 - optional media metadata
 - indexability state
 
-Collection-level validation also protects invariants that an individual record cannot check alone, such as duplicate IDs, duplicate effective routes, malformed relationships, and collisions across published resources.
+Collection-level validation protects invariants that an individual record cannot check alone, such as duplicate IDs, duplicate effective routes, malformed relationships, and collisions across published resources.
 
-The important architectural rule is:
+The important rule is:
 
 > becoming representable in the schema is not the same as becoming publishable.
-
-A supported record type can exist in the platform without automatically gaining an indexable production page.
 
 ---
 
@@ -96,9 +83,7 @@ The public page does not expose every internal field just because the publishing
 
 Gaming code guides are a good example. Internally, individual codes can carry evidence and freshness state. Publicly, the page is organized around the reader's task: usable code history, redemption steps, troubleshooting, game context, and updates.
 
-Current, reported, and expired entries can remain visible when they are useful. Internal verification language is kept out of the main reader experience unless it materially helps someone make a decision.
-
-That same rule applies across the site: strict evidence and structured metadata behind the scenes; natural article language on the page.
+Current, reported, and expired entries can remain visible when useful. Strict evidence stays behind the scenes; natural article language stays on the page.
 
 ---
 
@@ -118,10 +103,10 @@ record
  ├── related links
  ├── search index
  ├── freshness / source UI
- └── optional responsive media
+ └── responsive media
 ```
 
-This allows the platform to grow across different resource categories while keeping the publishing policy centralized.
+This lets the platform grow across different resource categories while keeping publishing policy centralized.
 
 ---
 
@@ -139,13 +124,13 @@ The discovery layer also includes:
 - Saved Finds stored locally in the browser
 - recently viewed state stored locally in the browser
 
-This keeps lightweight personalization possible without requiring an account or profile backend.
+This keeps lightweight personalization possible without requiring an account backend.
 
 ---
 
 ## 7. Owner control room
 
-The production project now has a separate owner control room rather than relying on raw repository files as the day-to-day operating interface.
+The production project has a separate owner control room rather than relying on raw repository files as the day-to-day operating interface.
 
 High-level shape:
 
@@ -164,17 +149,13 @@ isolated Admin Worker
 GitHub + bounded D1 operational state
 ```
 
-The control room is deliberately separate from the public Astro site.
-
 Key boundaries:
 
 - Git remains canonical for publications and final media.
-- D1 stores recoverable operational state, action history, and reconciliation data rather than becoming a second content database.
-- owner mutations are identity-bound and restricted to expected operations
-- browser actions do not get an arbitrary direct-to-`main` write surface
-- repository operations remain narrow and auditable
-
-This gives the project a usable owner interface without weakening the source-of-truth model.
+- D1 stores recoverable operational state and action history rather than becoming a second content database.
+- owner mutations are identity-bound and restricted to expected operations.
+- browser actions do not get an arbitrary direct-to-`main` write surface.
+- repository operations stay narrow and auditable.
 
 ---
 
@@ -190,9 +171,7 @@ The production control room can surface aggregate information from areas such as
 - bounded first-party interaction signals when explicitly enabled
 - operational media and publication state
 
-The project intentionally avoids manufacturing precision that the underlying providers do not offer. Search visibility, site traffic, page interactions, and advertising data remain separately defined inputs.
-
-The resulting reporting layer is useful for prioritization, but it cannot grant publish permission or rewrite content on its own.
+Search visibility, site traffic, page interactions, and advertising data remain separately defined inputs. Reporting can suggest where to investigate next; it cannot grant publishing permission.
 
 ---
 
@@ -200,73 +179,75 @@ The resulting reporting layer is useful for prioritization, but it cannot grant 
 
 FreeFindsHub has recurring publishing automation, but generic repository auto-merge is not the model.
 
-The current scheduler runs from trusted repository automation and gives the research/writing model a narrow job: propose one to three new structured content records.
+The scheduler runs from trusted repository automation and gives the research/writing model a narrow job: propose one to three new structured production records and, when useful, one directly relevant image candidate per article.
 
 Conceptually:
 
 ```text
-scheduled research + writing
+scheduled research
         ↓
-bounded structured payload
+structured article + image-source metadata
         ↓
-deterministic staging layer
+trusted deterministic staging
+        ├── validate publication payload
+        ├── download selected media once
+        ├── decode / validate / crop
+        └── create article-owned responsive variants
         ↓
-content-only branch + PR
+narrow branch + PR
         ↓
 exact-revision policy checks
         ↓
-merge to main
+main
         ↓
 normal production build
 ```
 
-The staging layer, not the research agent, performs repository writes. It rejects existing IDs, unexpected paths, media payloads, unsafe URLs, and shapes outside the production content contract.
+The research model does not choose final repository media paths and does not receive shell access, deployment authority, workflow mutation, or arbitrary repository writes.
 
-The pull request remains useful as a review and audit artifact, while the permission boundary stays narrow. The writing system does not receive shell access, Git authority, workflow mutation, or arbitrary repository writes simply because it is allowed to draft an article.
-
-The production schedule currently runs daily at 23:30 Asia/Colombo, with the same path available for explicit owner-triggered runs.
+The Daily Publisher is the only scheduled GitHub Actions workflow. The production schedule currently runs daily at 23:30 Asia/Colombo.
 
 ---
 
-## 10. Separate owner media path
+## 10. Trusted editorial media
 
-Image state is intentionally decoupled from article eligibility.
+Article eligibility and media availability are related but not identical.
 
-A strong article can publish with canonical image alt text and no hero image. The owner can add original editorial artwork later through the Admin media queue.
+A strong article can publish without a hero image. When a useful image candidate is selected, the trusted stage materializes it into FreeFindsHub-owned delivery assets.
 
-The current workflow is deliberately simpler than the earlier automated media-discovery design:
+High-level flow:
 
 ```text
-published article without image
+relevant source page / direct image
         ↓
-Admin: Needs image
+one-time trusted download
         ↓
-article context + deterministic image prompt
+format / size / decode validation
         ↓
-owner-created source image
+16:9 editorial crop
         ↓
-browser crop / encode
+640 / 960 / 1440 WebP variants
         ↓
-responsive 16:9 WebP variants
-        ↓
-narrow owner-media repository update
-        ↓
-Image added
+local article media + provenance metadata
 ```
 
-The browser produces responsive 640px, 960px, and 1440px WebP variants. The same workflow keeps the publication's canonical alt text aligned with the final image.
+Important properties:
 
-The publisher itself does not search for images, scrape artwork, perform licensing research, create placeholders, or block an otherwise useful article because artwork is missing.
+- the public site does not hotlink the source image;
+- the source host is not required at render time;
+- the record retains owner/publisher/developer credit, source-page URL, original image URL, import time, dimensions/MIME type, and source hash;
+- if import fails, the article can still publish without an image;
+- an absent image does not produce a fake placeholder;
+- Gaming strongly prefers recognizable real game imagery where suitable instead of generic generated replacement art;
+- another publication's edited/watermarked thumbnail is not the preferred source.
 
-This makes the trust boundary easier to explain: automated publishing handles research and writing; the owner owns visual direction.
+The owner control room still supports bounded media add/replace operations and a Delete image action. Deleting a managed hero removes its record binding and article-owned variants while leaving the article live.
 
 ---
 
 ## 11. SEO architecture
 
 Technical SEO is generated from the same validated content state as the visible page.
-
-That avoids a class of bugs where the page says one thing while the sitemap, schema, canonical, or feed says another.
 
 The production system includes:
 
@@ -282,6 +263,7 @@ The production system includes:
 - deterministic SEO diagnostics
 - search verification hooks
 - trusted post-publish IndexNow submission
+- image/search discovery considerations
 
 The system deliberately avoids unsupported ranking claims or schema that does not match visible content.
 
@@ -309,95 +291,60 @@ opportunity / diagnostic review
 human editorial decision
 ```
 
-The scoring or reporting layer is advisory. It cannot grant publish permission, bypass source verification, weaken duplicate-intent protections, or silently trigger content creation.
-
-That separation is important: a demand signal can tell the editorial process where to look, but demand alone does not make a page useful or trustworthy.
+Demand can tell the editorial process where to look, but demand alone does not make a page useful or trustworthy.
 
 ---
 
-## 13. Monetization architecture
+## 13. GitHub Actions cost boundary
+
+The production repository intentionally minimizes hosted-runner usage.
+
+The Daily Publisher is the only scheduled workflow. Narrow owner-media and recovery workflows exist only for their specific trusted boundaries.
+
+One-time migration/backfill automation is removed when its job is done. The October 2026 existing-article image refresh/rescue batch was explicitly cleaned out before the stable pre-AdSense release.
+
+This is a product decision as much as a cost decision: temporary operational machinery should not quietly become permanent architecture.
+
+---
+
+## 14. Monetization architecture
 
 Advertising is modeled as a separately gated system.
 
-The page layout supports monetization, but activation depends on owner and provider prerequisites rather than content automation deciding that a page should show ads.
+The repository can support AdSense verification, `ads.txt`, manual-unit configuration, reserved placements, and later measurement, but live serving remains behind external owner/provider readiness.
 
-The production architecture accounts for areas such as:
+The stable release is currently waiting for AdSense approval. The initial plan is deliberately controlled:
 
-- useful content depth
-- page-type eligibility
-- layout and interaction safety
-- external account and policy readiness
-- consent requirements where applicable
-- search and performance health
+1. satisfy account/consent prerequisites;
+2. enable only the first small manual baseline;
+3. verify UX/performance/no-fill behavior;
+4. collect real revenue and traffic evidence;
+5. test stronger placements or formats one controlled change at a time.
 
-The product rule is still straightforward: the page must be worth visiting even if every ad slot is mentally removed.
+Affiliate/referral monetization is a separate future path and should remain provider-scoped and transparent rather than becoming a generic redirect layer.
 
 ---
 
-## 14. Why Cloudflare
+## 15. Why the architecture stays deliberately boring
 
-The public site is deployed as static output through Cloudflare Workers Static Assets, while the owner control room runs as a separate Worker protected by Cloudflare Access.
+A large part of this project is choosing what *not* to make dynamic.
 
-That creates a useful split:
+The common reading path stays static. Automation writes through narrow structured boundaries. Search data is advisory. Media is self-hosted after trusted validation. Admin is bounded. Monetization fails closed.
+
+That combination keeps the core product understandable:
 
 ```text
-PUBLIC
-GitHub main
+real demand
    ↓
-validated Astro build
+verified useful resource
    ↓
-static dist
+relevant durable media
    ↓
-Cloudflare edge
-
-OWNER
-Cloudflare Access
+fast static page
    ↓
-Admin Worker
+discovery / action
    ↓
-GitHub + bounded D1 state
+measured, transparent monetization
 ```
 
-The project also deliberately keeps infrastructure modest. D1 exists where owner operational state justifies it; the public content path remains static and does not require a database request.
-
----
-
-## 15. Testing and release checks
-
-The private production repository has focused checks around content, SEO behavior, owner operations, automation policy, media handling, publishing output, and growth tooling.
-
-Representative classes of checks include:
-
-- Astro and TypeScript validation
-- production build verification
-- content schema tests
-- collection and published-record validation
-- structured-data tests
-- search behavior tests
-- monetization-policy tests
-- autonomous publishing-policy tests
-- Admin security and operation tests
-- owner-media workflow tests
-- IndexNow tests
-- growth and Search Console reporting tests
-- browser QA and production-output validation
-
-This matters because a publishing site can fail without throwing a runtime exception. A broken canonical, accidental indexable query state, stale action URL, duplicate route, misleading code state, or unsafe owner operation is still a production defect.
-
----
-
-## 16. Things intentionally not published here
-
-This showcase does not include:
-
-- production application source
-- the live content registry
-- owner control-room source and configuration
-- private growth reports
-- privileged automation implementation
-- deployment credentials or environment configuration
-- advertising account identifiers
-- analytics or provider credentials
-- private editorial and research artifacts
-
-The purpose of this repository is to make the engineering legible without weakening the separation between a public portfolio artifact and the production publishing system.
+The production repository remains private; this public showcase intentionally stops at the architecture and engineering decisions rather than exposing privileged implementation details.
